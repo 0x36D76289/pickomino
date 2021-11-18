@@ -58,14 +58,14 @@ def sur_plateau(pikominos:list, pikominos_joueur:list, need_pikominos:int, somme
 def prendre_pikominos(pikominos:list, pikominos_joueur:list, pikominos_autre_joueurs:list, somme_des:int):
     print("Le joueurs a {} pikominos,\nLes joueurs en face ont {} pikominos prenable,\nEt il y a {} Pikominos sur disponible".format(pikominos_joueur, pikominos_autre_joueurs, pikominos)) # on affiche les informations
     need_pikominos = int(input("Quel pikominos veut tu prendre (tu as un score de {} avec tes lancés de des) (entrez un entier): ".format(somme_des))) # on demande le pikominos
-    if need_pikominos == somme_des or need_pikominos in takeClosest(pikominos, somme_des): # si le joueur a le pikominos sur le plateau
-        if need_pikominos > 36 or need_pikominos < 21: # si le joueur veut prendre un pikominos qui n'est pas sur le plateau
-            return prendre_pikominos(pikominos, pikominos_joueur, pikominos_autre_joueurs, somme_des) # on recommence
-        if need_pikominos == takeClosest(pikominos, somme_des): # si le joueur a le pikominos sur le plateau
-            pikominos_joueur, pikominos = sur_plateau(pikominos, pikominos_joueur, need_pikominos, somme_des) # on ajoute le pikominos au joueur
-        elif need_pikominos == somme_des: # si le joueur a le pikominos sur le plateau
-            pikominos_joueur, pikominos_autre_joueurs = autre_joueur(pikominos_joueur, pikominos_autre_joueurs, need_pikominos) # on ajoute le pikominos au joueur
-        return pikominos_joueur, pikominos, pikominos_autre_joueurs # on retourne les listes
+    if need_pikominos == somme_des: # si le joueur a le pikominos sur le plateau
+        if 21 < need_pikominos < 36:
+            if need_pikominos in takeClosest(pikominos, somme_des): # si le joueur a le pikominos sur le plateau
+                if need_pikominos == takeClosest(pikominos, somme_des): # si le joueur a le pikominos sur le plateau
+                    pikominos_joueur, pikominos = sur_plateau(pikominos, pikominos_joueur, need_pikominos, somme_des) # on ajoute le pikominos au joueur
+                elif need_pikominos == somme_des: # si le joueur a le pikominos sur le plateau
+                    pikominos_joueur, pikominos_autre_joueurs = autre_joueur(pikominos_joueur, pikominos_autre_joueurs, need_pikominos) # on ajoute le pikominos au joueur
+            return pikominos_joueur, pikominos, pikominos_autre_joueurs # on retourne les listes
     return prendre_pikominos(pikominos, pikominos_joueur, pikominos_autre_joueurs, somme_des) # on recommence
 
 def pass_ton_tour(pikominos:list, pikominos_joueur:list):
@@ -103,19 +103,25 @@ def condition(pikominos:list, pikominos_joueur:list, temp_des_poche:list, temp_d
     :param nombre_des: number of dice values
     :return: temp_des_poche, nombre_des
     """
-    need_dominos = input("Quel dominos veut tu prendre ? {}".format(temp_des_lancer))
+    #si tout les chiffres du temp_des_lancer est dans temp_des_poches on passe sont tour
+    if all(x in temp_des_poche for x in temp_des_lancer):
+        print("Tu passe ton tour")
+        return [0], nombre_des
+    need_dominos = input("Quel dominos veut tu prendre ? {} ".format(temp_des_lancer))
     if need_dominos == "n":
         if 6 in temp_des_poche:
             return temp_des_poche, 0
         print("Tu passe ton tour")
         return [0], nombre_des
-    elif need_dominos in temp_des_poche:
+    if int(need_dominos) in temp_des_poche:
         print("Tu ne peux pas prendre un dominos qui tu possede deja")
-        return condition(pikominos, temp_des_poche, temp_des_lancer, nombre_des)
+        return condition(pikominos, pikominos_joueur, temp_des_poche, temp_des_lancer, nombre_des)
     temp_des_poche, nombre_des = condition2(temp_des_lancer, temp_des_poche, need_dominos, nombre_des)
     return temp_des_poche, nombre_des
 
-def tour(joueur, pikominos, pikominos_joueur):
+def tour(joueur:int, pikominos:list, pikominos_joueur:list) -> int:
+    """ joueur: int, pikominos: list, pikominos_joueur: list -> int
+    """
     pikominos.sort()
     temp_des_poche = []
     nombre_des = 8
@@ -123,7 +129,9 @@ def tour(joueur, pikominos, pikominos_joueur):
         temp_des_lancer = lance_des(nombre_des)
         print("{} a lancé les dés : {}".format(joueur, temp_des_lancer))
         temp_des_poche, nombre_des = condition(pikominos, pikominos_joueur, temp_des_poche, temp_des_lancer, nombre_des)
-        print("{} a prit les dominos {}".format(joueur, temp_des_poche))
+        if temp_des_poche == [0]:
+            return 0
+        print("{} a prit les dominos {} = {}".format(joueur, temp_des_poche, sum(temp_des_poche)))
     print("Vous ne pouvez plus lancer de des")
     return sum(temp_des_poche)
 
@@ -152,16 +160,28 @@ if __name__ == "__main__":
         nombre_des = 8 # nombre de dés à lancer
         for joueur in range(nombre_joueurs):
             vers_autre_joueurs = []
-            if len(pikominos_joueur[joueur]) != 0:
-                for i in range(nombre_joueurs):
-                    vers_autre_joueurs.append(pikominos_joueur[i-1][-1])
-                vers_joueurs = []
+            #crée une liste vers_autre_joueurs qui contient tout les derniers caracteres des listes dasn la liste pikominos_joueur sauf celui du joueurs en cours
+            for i in range(nombre_joueurs):
+                if i != joueur:
+                    if len(pikominos_joueur[i-1]) != 0:
+                        vers_autre_joueurs.append(pikominos_joueur[i-1][-1])
+                    else:
+                        vers_autre_joueurs.append(0)
+
+            #if pikominos_joueur[joueur] != []:
+            #    for i in range(nombre_joueurs):
+            #        if i != joueur:
+            #            vers_autre_joueurs.append(pikominos_joueur[i-1][-1])
+            vers_joueurs = []
+            if len(pikominos_joueur[joueur]) != 0: # si le joueur a des pikominos
                 for i in range(len(nombre_joueurs[joueur-1])):
                     vers_joueurs.append(pikominos_joueur[joueur-1][-1])
             else:
                 vers_autre_joueurs = []
                 vers_joueurs = []
             somme_des = tour(liste_joueur[joueur-1], vers, vers_joueurs)
+            if somme_des == 0:
+                continue # si le joueur a pas pris de dominos on passe son tour
             print("{} a obtenu un score de {} avec les des".format(liste_joueur[joueur-1], somme_des))
             vers_joueurs, vers, vers_autre_joueurs = prendre_pikominos(vers, vers_joueurs, vers_autre_joueurs, somme_des)
             print("{} a pris les pikominos {}".format(liste_joueur[joueur-1], vers_joueurs))
