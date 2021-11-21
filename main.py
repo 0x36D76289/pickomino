@@ -30,7 +30,8 @@ def autre_joueur(pikominos_joueur:list, pikominos_autre_joueurs:list, need_pikom
 	:return: pikominos_joueur:list et pikominos_autre_joueurs:list
 	"""
 	pikominos_joueur.append(need_pikominos) # on ajoute le pikominos au joueur
-	pikominos_autre_joueurs.remove(need_pikominos) # on supprime le pikominos de la liste des autres joueurs
+	# on supprime le derniere element de la liste pikominos_autre_joueurs
+	pikominos_autre_joueurs.remove(pikominos_autre_joueurs[-1])
 	return pikominos_joueur, pikominos_autre_joueurs # 
 
 def takeClosest(myList:list, myNumber:int) -> int:
@@ -63,12 +64,11 @@ def prendre_pikominos(pikominos:list, pikominos_joueur:list, pikominos_autre_jou
 	print("\t{}, {}, {}".format(pikominos, pikominos_joueur, pikominos_autre_joueurs))
 	if 21 <= somme_des <= 36:
 		number_list = 0
-		takeclosest_pikominos = takeClosest(pikominos, somme_des)
 		if somme_des in pikominos:
 			pikominos_eligible = [i for i in pikominos if i == somme_des]
 			number_list = 1
 		elif somme_des in pikominos_autre_joueurs:
-			pikominos_eligible = [i for i in pikominos_autre_joueurs if i == takeclosest_pikominos]
+			pikominos_eligible = [i for i in pikominos_autre_joueurs if i == somme_des]
 			number_list = 2
 		else:
 			pikominos_eligible = [i for i in pikominos if i == takeClosest(pikominos, somme_des)]
@@ -88,7 +88,7 @@ def prendre_pikominos(pikominos:list, pikominos_joueur:list, pikominos_autre_jou
 	print("Tu en peux pas prendre de dés car {} n'est pas dans l'interval 21 <= n <= 36".format(somme_des))
 	return pikominos_joueur, pikominos, pikominos_autre_joueurs
 
-def pass_ton_tour(pikominos:list[int], pikominos_joueur:list[int]):
+def pass_ton_tour(pikominos:list, pikominos_joueur:list):
 	"""
 	Rend le dernier pikominos du joueur et le met dans la list pikominos, si il est le plus pikominos le plus élever apres sont ajout on le supprime
 	"""
@@ -136,8 +136,12 @@ def condition(pikominos:list, pikominos_joueur:list, temp_des_poche:list, temp_d
 			return temp_des_poche, -3
 		print("Tu passe ton tour")
 		return [0], -1
-	if int(need_dominos) in temp_des_poche:
-		print("Tu ne peux pas prendre un dominos qui tu possede deja")
+	if int(need_dominos) in temp_des_lancer:
+		if int(need_dominos) in temp_des_poche:
+			print("Tu ne peux pas prendre un dominos qui tu possede deja")
+			return condition(pikominos, pikominos_joueur, temp_des_poche, temp_des_lancer, nombre_des)
+	else:
+		print("Tu ne peux pas prendre un dominos qui n'est pas disponible")
 		return condition(pikominos, pikominos_joueur, temp_des_poche, temp_des_lancer, nombre_des)
 	temp_des_poche, nombre_des = condition2(temp_des_lancer, temp_des_poche, need_dominos, nombre_des)
 	return temp_des_poche, nombre_des
@@ -192,47 +196,58 @@ if __name__ == "__main__":
 			vers_joueurs = []
 			vers_autre_joueurs = []
 			if len(pikominos_joueur[joueur]) != 0: # si le joueur a des pikominos
-				for i in range(len(pikominos_joueur[joueur-1])):
-					vers_joueurs.append(pikominos_joueur[joueur-1][-1])
-
+				for i in range(len(pikominos_joueur[joueur])):
+					vers_joueurs.append(pikominos_joueur[joueur][-1])
+			print(vers_autre_joueurs)
 			print("\n\tTour {}\n\tPikominos sur plateau {}\n\tPikominos autre joueurs {}\n".format(tours, vers, pikominos_joueur))
 			somme_des = tour(liste_joueur[joueur], vers, vers_joueurs)
 			#crée une liste vers_autre_joueurs qui contient tout les derniers caracteres des listes dasn la liste pikominos_joueur sauf celui du joueurs en cours
-			if len(pikominos_joueur[0]) != 0: # si la liste n'est pas vide
+			if tours != 1: # si la liste n'est pas vide
 				for i in range(nombre_joueurs): # on parcours la liste des joueurs
 					if i != joueur: # si le joueur n'est pas celui en cours
-						if len(pikominos_joueur[i-1]) != 0: # si la liste n'est pas vide
-							vers_autre_joueurs.append(pikominos_joueur[i-1][-1]) # on ajoute le dernier caractere de la liste dans la liste vers_autre_joueurs
+						if len(pikominos_joueur[i]) != 0: # si la liste n'est pas vide
+							vers_autre_joueurs.append(pikominos_joueur[i][-1]) # on ajoute le dernier caractere de la liste dans la liste vers_autre_joueurs
 						else: # si la liste est vide
 							vers_autre_joueurs.append(0) # on ajoute 0 dans la liste vers_autre_joueurs
 			else:
 				vers_autre_joueurs = []
 				vers_joueurs = []
+			vers = sorted(vers)
+			#vers_autre_joueurs = sorted(vers_autre_joueurs)
+			#vers_joueurs = sorted(vers_joueurs)
 			if len(vers_joueurs) != 0:
 				if somme_des == -1:
 					print("{} a perdu car il n'a pas de 6".format(liste_joueur[joueur-1]))
 					#pass ton tour
-					vers_joueurs, pikominos_joueur[joueur-1] = pass_ton_tour(vers, vers_joueurs)
+					vers_joueurs, pikominos_joueur[joueur] = pass_ton_tour(vers, vers_joueurs)
 					continue
 				if somme_des == -2:
-					print("{} a perdu car il a jeter que des des qu'il possede deja".format(liste_joueur[joueur-1]))
-					vers_joueurs, pikominos_joueur[joueur-1] = pass_ton_tour(vers, vers_joueurs)
+					print("{} a perdu car il a jeter que des des qu'il possede deja".format(liste_joueur[joueur]))
+					vers_joueurs, pikominos_joueur[joueur] = pass_ton_tour(vers, vers_joueurs)
 					continue
 			else:
 				if somme_des == -1:
-					print("{} a perdu car il n'a pas de 6 mais tu ne peux rendre aucun pikominos".format(liste_joueur[joueur-1]))
+					print("{} a perdu car il n'a pas de 6 mais tu ne peux rendre aucun pikominos".format(liste_joueur[joueur]))
 					continue
 				if somme_des == -2:
-					print("{} a perdu car il a jeter que des des qu'il possede deja".format(liste_joueur[joueur-1]))
+					print("{} a perdu car il a jeter que des des qu'il possede deja".format(liste_joueur[joueur]))
 					continue
 			print("{} a obtenu un score de {} avec les des".format(liste_joueur[joueur], somme_des))
-			sorted(vers)
-			sorted(vers_autre_joueurs)
-			sorted(vers_joueurs)
 			#pikominos_joueur, pikominos, pikominos_autre_joueurs
 			vers, vers_joueurs, vers_autre_joueurs = prendre_pikominos(vers, vers_joueurs, vers_autre_joueurs, somme_des)
-			print("{} a pris les pikominos {}".format(liste_joueur[joueur], vers_joueurs))
-			pikominos_joueur[joueur].extend(vers_joueurs)
+			#supprime les doublons de la liste vers_joueurs
+			vers_joueurs_temp = []
+			for i in vers_joueurs:
+				if i not in vers_joueurs_temp:
+					vers_joueurs_temp.append(i)
+			vers_joueurs = vers_joueurs_temp
+			vers_autre_joueurs_temp = []
+			for i in vers_autre_joueurs:
+				if i not in vers_joueurs:
+					vers_autre_joueurs_temp.append(i)
+			vers_autre_joueurs = vers_autre_joueurs_temp
+			print("{} a les pikominos {}".format(liste_joueur[joueur], vers_joueurs))
+			pikominos_joueur[joueur] = vers_joueurs
 			tours += 1
 
 	max_score = 0
