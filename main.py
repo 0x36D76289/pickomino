@@ -1,270 +1,226 @@
-def lance_des(nombre_des:int) -> list:
-	"""
-	Fonction qui lance des dés "nombre_des" fois et retourne le résultat
-	:param des: nombre de dés à lancer
-	:return: liste des valeurs obtenues
-	"""
-	from random import randint
-	valeurs = []
-	for i in range(nombre_des):
-		valeurs.append(randint(1, 6))
-	return valeurs
+def take_dominoes(number_players, player, main_dominoes, temp_dominoes, last_other_dominoes, sum_dice):
+    """ temp_dice, names, main_dominoes, temp_dominoes crée une liste takeable qui correspond aux dominos qui peuvent
+    etre pris si 21 <= sum_dice <= 36 - Si sum_dice strictement égale à un entier dans last_other_dominoes - Si
+    sum_dice strictement égale à un entier dans main_dominoes - Si sum_dice n'est pas strictement égale à un entier
+    dans main_dominoes on ajoute l'entier le plus proche de sum_dice à takeable
+    """
+    # le caractere le plus proche de sum_dice dans main_dominoes
+    close_value = [i for i in main_dominoes if abs(sum_dice - i) == min(abs(sum_dice - i) for i in main_dominoes)]
+    takeable = []
 
-def n_j() -> int:
-	"""
-	Fonction qui demande le nombre de joueurs si le nombre est <= 2 et => 7
-	:return: nombre de joueurs
-	"""
-	nombre_joueurs = int(input("Combien de joueurs ? "))
-	if 7 <= nombre_joueurs <= 2:
-		print("Il faut un chiffre <= 2 et => 7")
-		return n_j()
-	return nombre_joueurs
+    if sum_dice in last_other_dominoes:
+        temp_list = [i for i in last_other_dominoes if i == sum_dice]
+        takeable += temp_list
+    if sum_dice in main_dominoes:
+        temp_list = [i for i in main_dominoes if i == sum_dice]
+        takeable += temp_list
+    if sum_dice != close_value:
+        takeable.append(close_value)
+    # trie la liste takeable dans l'ordre croissant
+    if len(takeable[1:]) == 0:
+        return
 
-def autre_joueur(pikominos_joueur:list, pikominos_autre_joueurs:list, need_pikominos:int):
-	""" Fonction qui permet de prendre le pikominos d'un autre joueur
-	Fonction qui ajoute le pikominos au joueur
-	:param pikominos_joueur: liste des pikominos du joueur
-	:param pikominos_autre_joueurs: liste des pikominos des autres joueurs
-	:param need_pikominos: pikominos que le joueur veut prendre
-	:return: pikominos_joueur:list et pikominos_autre_joueurs:list
-	"""
-	pikominos_joueur.append(need_pikominos) # on ajoute le pikominos au joueur
-	# on supprime le derniere element de la liste pikominos_autre_joueurs
-	pikominos_autre_joueurs.pop()
-	return pikominos_joueur, pikominos_autre_joueurs 
+    print(f"{number_players[player]} a comme dominos prennable : {takeable[1]}")
+    choice = int(input("Quel dominos veut tu prendre : "))
 
-def takeClosest(myList:list, myNumber:int) -> int:
-	return min(myList, key=lambda x:abs(x-myNumber))
+    while choice not in takeable:
+        choice = int(input("Quel dominos veut tu prendre : "))
+    choice = int(choice)
+    if choice in main_dominoes:
+        # ajoute choice à temp_dominoes
+        temp_dominoes.append(choice)
+        # supprime choice de main_dominoes
+        main_dominoes.remove(choice)
+    if choice in last_other_dominoes:
+        # ajoute choice à temp_dominoes
+        temp_dominoes.append(choice)
+        # supprime choice de last_other_dominoes
+        last_other_dominoes.remove(choice)
+    if choice == close_value:
+        # ajoute choice à temp_dominoes
+        temp_dominoes.append(choice)
+        # supprime choice de main_dominoes
+        main_dominoes.remove(choice)
+    print(f"Vous avez pris {choice} à vos dominos")
+    return
 
-def sur_plateau(pikominos:list, pikominos_joueur:list, need_pikominos:int):
-	pikominos_joueur.append(need_pikominos)
-	pikominos.remove(need_pikominos)
-	return pikominos_joueur, pikominos
 
-def prendre_pikominos_proche(pikominos:list, need_pikominos:int, pikominos_joueur:list):
-	"""
-	ajoute à pikominos_joueurs le le caractere pikominos_a_prendre et le supprime de pikominos
-	"""
-	pikominos_joueur.append(need_pikominos)
-	pikominos.remove(need_pikominos)
-	return pikominos_joueur, pikominos
+def skip_your_turn(main_dominoes: list[int], temp_dominoes: list[int]):
+    """
+    Si le dernier entier de temp_dominos est plus petit que le plus grand de la liste main_dominos,
+     on l'ajoute à main_dominos et on le supprime de temp_dominos.
+     si non on le supprime de temp_dominos.
+    """
+    if temp_dominoes[-1] < max(main_dominoes):
+        main_dominoes.append(temp_dominoes[-1])
+    temp_dominoes.pop()
 
-def prendre_pikominos(pikominos:list, pikominos_joueur:list, pikominos_autre_joueurs:list, somme_des:int):
-	""" 
-	Si la somme des dés est dans la liste pikominos, on prend le pikominos de la liste
-	Si la somme des dés est dans la liste pikominos_autre_joueurs, on prend le pikominos de la liste
-	Si aucune d'entre elle est dans la liste, on prend le pikominos le plus proche de la somme des dés dans la liste pikominos
-	:param pikominos: liste des pikominos
-	:param pikominos_joueur: liste des pikominos du joueur
-	:param pikominos_autre_joueurs: liste des pikominos des autres joueurs
-	:somme_des: somme des dés
-	:return: pikominos_joueur:list et pikominos:list et pikominos_autre_joueurs:list
-	"""
-	print("\t{}, {}, {}".format(pikominos, pikominos_joueur, pikominos_autre_joueurs))
-	if 21 <= somme_des <= 36:
-		number_list = 0
-		if somme_des in pikominos:
-			pikominos_eligible = [i for i in pikominos if i == somme_des]
-			number_list = 1
-		elif somme_des in pikominos_autre_joueurs:
-			pikominos_eligible = [i for i in pikominos_autre_joueurs if i == somme_des]
-			number_list = 2
-		else:
-			pikominos_eligible = [i for i in pikominos if i == takeClosest(pikominos, somme_des)]
-			number_list = 3
 
-		need_pikominos = int(input("Quel pikominos veut tu prendre {} somme des = {} :  ".format(pikominos_eligible, somme_des)))
-		if need_pikominos in pikominos_eligible:
+def rolling_dice(number_dice):
+    """
+    On lance dice fois un des allant de 1 à 6
+    """
+    import random
+    return [random.randint(1, 6) for _ in range(number_dice)]
 
-			if number_list == 1: # si le pikominos est sur le plateau
-				pikominos_joueur, pikominos = sur_plateau(pikominos, pikominos_joueur, need_pikominos)
-				print("\t{}, {}, {}".format(pikominos, pikominos_joueur, pikominos_autre_joueurs))
-				return pikominos, pikominos_joueur, pikominos_autre_joueurs
 
-			elif number_list == 2: # si le pikominos n'est pas sur le plateau mais que tu vex prendre celui le plus proche inférieur
-				pikominos_joueur, pikominos_autre_joueurs = autre_joueur(pikominos_joueur, pikominos_autre_joueurs, need_pikominos)
-				print("\t{}, {}, {}".format(pikominos, pikominos_joueur, pikominos_autre_joueurs))
-				return pikominos, pikominos_joueur, pikominos_autre_joueurs
+def pass_your_turn(main_dominoes: list[int], temp_dominoes: list[int]):
+    """
+    Rend le dernier entier de temp_dominoes à main_dominoes
+     Si cette entier est plus petit que le plus grand de la liste main_dominoes,
+     on l'ajoute à main_dominoes et on le supprime de temp_dominoes.
+    """
+    print(f"Vous avez passé votre tour et rendu {temp_dominoes[-1]}")
+    if temp_dominoes[-1] < max(main_dominoes):
+        main_dominoes.append(temp_dominoes[-1])
+    temp_dominoes.pop()
+    print(f"Les dominos sur le plateau : {main_dominoes}\n"
+          f"Vous avez maintenant       : {temp_dominoes}")
 
-			else: # si le pikominos n'est pas sur le plateau mais que tu vex prendre celui le plus proche inférieur
-				pikominos_joueur, pikominos = prendre_pikominos_proche(pikominos, need_pikominos, pikominos_joueur)
-				print("\t{}, {}, {}".format(pikominos, pikominos_joueur, pikominos_autre_joueurs))
-				return pikominos, pikominos_joueur, pikominos_autre_joueurs
 
-		return prendre_pikominos(pikominos, pikominos_joueur, pikominos_autre_joueurs, somme_des)
-	print("Tu en peux pas prendre de dés car {} n'est pas dans l'interval 21 <= n <= 36".format(somme_des))
-	return pikominos, pikominos_joueur, pikominos_autre_joueurs
+def choice_dice(number_players, player, temp_dice_roll, temps_dice):
+    """
+    Demande au joueur de choisir le nombre de dés qu'il veut lancer
+    """
+    if len(temps_dice) != 0:
+        if all(i in temps_dice for i in temp_dice_roll):
+            print(f"Tu as jeté que des dés {temp_dice_roll} que tu possèdes deja {temps_dice}, pas de chance")
+            return -2
+    choice = input(f"{number_players[player]}, Quel dominos veut tu prendre {temp_dice_roll} (N, pour arreter 1): ")
 
-def pass_ton_tour(pikominos:list, pikominos_joueur:list):
-	"""
-	Rend le dernier pikominos du joueur et le met dans la list pikominos, si il est le plus pikominos le plus élever apres sont ajout on le supprime
-	"""
-	print("Tu as perdu le pikominos {}" .format(pikominos_joueur[-1]))
-	if max(pikominos) > int(pikominos_joueur[-1]):
-		print("Le Pickominos {} as été remis sur le plateau".format(pikominos_joueur[-1]))
-		pikominos.append(pikominos_joueur[-1])
-		pikominos_joueur.remove(pikominos_joueur[-1])
-	else: 
-		print("Le Pickominos {} as été remis sur le plateau mais il n'est plus disponible car c'est le plus grand".format(pikominos_joueur[-1]))
-		pikominos_joueur.remove(pikominos_joueur[-1])
-	pikominos.sort()
-	return pikominos, pikominos_joueur
+    if choice in ['n', 'N']:
+        if 6 in temps_dice:
+            return int(sum(temps_dice))
+        return -1
+    choice = int(choice)
+    if choice not in temp_dice_roll:
+        print("Tu ne peux pas prendre un des que tu n'a pas lancer")
+        return choice_dice(number_players, player, temp_dice_roll, temps_dice)
+    if choice in temps_dice:
+        print("Tu ne peux pas prendre un des que tu possede deja")
+        return choice_dice(number_players, player, temp_dice_roll, temps_dice)
+    return choice
 
-def condition2(temp_des_lancer:list, temp_des_poche:list, need_dominos:str, nombre_des:int) -> list:
-	"""
-	Fonction qui vérifie si la condition 2 est respectée
-	:param temp_des_lancer: liste des dés lancés
-	:param temp_des_poche: liste des dés de la poche
-	:param need_dominos: nécessité de dominos
-	:param nombre_des: nombre de dés à lancer
-	:return: liste des dés à lancer
-	"""
-	for i in range(len(temp_des_lancer)): # on parcours la liste des dés lancés
-		if temp_des_lancer[i] == int(need_dominos): # si le joueur a le dominos
-			temp_des_poche.append(temp_des_lancer[i]) # on ajoute le dominos à la poche
-			nombre_des = nombre_des - 1
-	return temp_des_poche, nombre_des
 
-def condition(pikominos:list, pikominos_joueur:list, temp_des_poche:list, temp_des_lancer:list, nombre_des:int):
-	"""
-	Check if the player wants to roll again and what pair of dice they want to take
-	:param pikominos: list of the pikominos
-	:param temp_des_poche: list of the pikominos in the poche
-	:param temp_des_lancer: list of the dice values
-	:param nombre_des: number of dice values
-	:return: temp_des_poche, nombre_des
-	"""
-	#si tout les chiffres du temp_des_lancer est dans temp_des_poches on passe sont tour
-	if all(x in temp_des_poche for x in temp_des_lancer):
-		print("Tu passe ton tour")
-		return [0], -2
-	need_dominos = input("Quel dominos veut tu prendre (N/n pour stop): ")
-	if need_dominos in ["N", "n"]:
-		if 6 in temp_des_poche:
-			return temp_des_poche, -3
-		print("Tu passe ton tour")
-		return [0], -1
-	if int(need_dominos) in temp_des_lancer:
-		if int(need_dominos) in temp_des_poche:
-			print("Tu ne peux pas prendre un dominos qui tu possede deja")
-			return condition(pikominos, pikominos_joueur, temp_des_poche, temp_des_lancer, nombre_des)
-	else:
-		print("Tu ne peux pas prendre un dominos qui n'est pas disponible")
-		return condition(pikominos, pikominos_joueur, temp_des_poche, temp_des_lancer, nombre_des)
-	temp_des_poche, nombre_des = condition2(temp_des_lancer, temp_des_poche, need_dominos, nombre_des)
-	return temp_des_poche, nombre_des
+def player_turn(player, number_players):
+    """
+    Tant que le nombre de dés != 0 , on lance le dés tant que :
+    - dice != 0
+    - tout les chiffres de 1 à 6 ne sont pas dans temp_dice
+    - l'utilisateur ne veut pas prendre de des avec "n" ou "N"
+    """
+    number_dice = 8
+    temps_dice = []
+    throw_of_dice = 0
+    while number_dice > 0:
+        throw_of_dice += 1
+        temp_dice_roll = rolling_dice(number_dice)
+        # tout les chiffres de temp_dice_roll sont dans temp_dice
+        # regarde si tout les chiffres  de temp_dice_roll sont dans temps_dice
+        # tout les chiffres de temp_dice_roll sont dans main_dominos
+        choice = choice_dice(number_players, player, temp_dice_roll, temps_dice)
+        if choice == sum(temps_dice):
+            return sum(temps_dice)
+        if choice == -1:
+            return -1
+        if choice == -2:
+            return -2
+        # ajoute tout les chiffres == choice à temp_dice et décrémente autant de fois number_dice
+        for number in temp_dice_roll:
+            if number == choice:
+                temps_dice.append(number)
+                number_dice -= 1
+        print(f"Vous avez pris les dés {choice} : {temps_dice} = {sum(temps_dice)}")
+    if 6 not in temps_dice:
+        print("Vous n'avez pas de 6")
+        return -1
+    print()
+    return int(sum(temps_dice))
 
-def tour(joueur, pikominos:list, pikominos_joueur:list) -> int:
-	""" joueur: int, pikominos: list, pikominos_joueur: list -> int
-	"""
-	pikominos.sort()
-	temp_des_poche = []
-	nombre_des = 8
-	while nombre_des != 0:
-		temp_des_lancer = lance_des(nombre_des)
-		print("{} a lancé les dés : {}".format(joueur, temp_des_lancer))
-		temp_des_poche, nombre_des = condition(pikominos, pikominos_joueur, temp_des_poche, temp_des_lancer, nombre_des) # on vérifie si la condition 2 est respectée
-		if temp_des_poche == [0] and nombre_des == -1: # si le joueur a passé son tour
-			return -1
-		if nombre_des == -2:
-			return -2
-		if nombre_des == -3:
-			return sum(temp_des_poche)
-		print("{} a prit les dominos {} = {}".format(joueur, temp_des_poche, sum(temp_des_poche)))
-	print("Vous ne pouvez plus lancer de des")
-	if 6 not in temp_des_poche:
-		return -1
-	return sum(temp_des_poche)
 
 if __name__ == "__main__":
-	vers = [21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36] # Liste des pikominos
-	print(vers)
+    print("Pikomino")
+    # Liste des dominos de 21 à 36
+    main_dominoes = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
+    print(main_dominoes)
 
-	# On demande le nombre de joueurs et on crée la liste des joueurs avec leurs pikominos
-	nombre_joueurs = n_j()
-	liste_joueur = []
-	pikominos_joueur = []
+    # Nombre de joueurs entre 2 et 7
+    nb_players = int(input("Combien de joueurs ? "))
+    while nb_players < 2 or nb_players > 7:
+        nb_players = int(input("Combien de joueurs ? "))
 
-	# Création de la liste des joueurs
-	for x in range(nombre_joueurs):
-		nom_joueur = input("Nom du joueur " + str(x+1) + ": ")
-		liste_joueur.append(nom_joueur)
+    # Liste des dominos des joueurs dans une liste de listes
+    players_dominoes = []
+    for i in range(nb_players):
+        players_dominoes.append([])
 
-	# Création de la liste des pikominos des joueurs
-	for i in range(nombre_joueurs):
-		pikominos_joueur.append([])
+    # Liste des prenom des joueurs
+    names = []
+    for i in range(nb_players):
+        names.append(input("Quel est le prénom du joueur " + str(i + 1) + " ? "))
 
-	print("Joueurs :\n{}\nPikominos des joueurs\n{}\nC'est au joueurs 1 de commencer".format(liste_joueur, pikominos_joueur))
-	tours = 1
-	#le jeux commence
-	while len(vers) != 0:
-		nombre_des = 8 # nombre de dés à lancer
-		for joueur in range(nombre_joueurs):
-			somme_des = 0
-			vers_joueurs = []
-			vers_autre_joueurs = []
-			if len(pikominos_joueur[joueur]) != 0: # si le joueur a des pikominos
-				for i in range(len(pikominos_joueur[joueur])):
-					vers_joueurs.append(pikominos_joueur[joueur][-1])
-			print("\n\tTour {}\n\tPikominos sur plateau {}\n\tPikominos autre joueurs {}\n".format(tours, vers, vers_joueurs))
-			somme_des = tour(liste_joueur[joueur], vers, vers_joueurs)
-			#crée une liste vers_autre_joueurs qui contient tout les derniers caracteres des listes dasn la liste pikominos_joueur sauf celui du joueurs en cours
-			if tours != 1: # si la liste n'est pas vide
-				for i in range(nombre_joueurs): # on parcours la liste des joueurs
-					if i != joueur: # si le joueur n'est pas celui en cours
-						if len(vers_joueurs) != 0: # si la liste n'est pas vide
-							vers_autre_joueurs.append(vers_joueurs[-1]) # on ajoute le dernier caractere de la liste dans la liste vers_autre_joueurs
-						else: # si la liste est vide
-							vers_autre_joueurs.append(0) # on ajoute 0 dans la liste vers_autre_joueurs
-			else:
-				vers_autre_joueurs = []
-				vers_joueurs = []
-			vers = sorted(vers)
-			#vers_autre_joueurs = sorted(vers_autre_joueurs)
-			#vers_joueurs = sorted(vers_joueurs)
-			if len(vers_joueurs) != 0:
-				if somme_des == -1:
-					print("{} a perdu car il n'a pas de 6".format(liste_joueur[joueur-1]))
-					#pass ton tour
-					vers_joueurs, vers_joueurs = pass_ton_tour(vers, vers_joueurs)
-					continue
-				if somme_des == -2:
-					print("{} a perdu car il a jeter que des des qu'il possede deja".format(liste_joueur[joueur]))
-					vers_joueurs, vers_joueurs = pass_ton_tour(vers, vers_joueurs)
-					continue
-			else:
-				if somme_des == -1:
-					print("{} a perdu car il n'a pas de 6 mais tu ne peux rendre aucun pikominos".format(liste_joueur[joueur]))
-					continue
-				if somme_des == -2:
-					print("{} a perdu car il a jeter que des des qu'il possede deja".format(liste_joueur[joueur]))
-					continue
-			print("{} a obtenu un score de {} avec les des".format(liste_joueur[joueur], somme_des))
-			#pikominos_joueur, pikominos, pikominos_autre_joueurs
-			vers, vers_joueurs, vers_autre_joueurs = prendre_pikominos(vers, vers_joueurs, vers_autre_joueurs, somme_des)
-			#supprime les doublons de la liste vers_joueurs
-			vers_joueurs_temp = []
-			for i in vers_joueurs:
-				if i not in vers_joueurs_temp:
-					vers_joueurs_temp.append(i)
-			vers_joueurs = vers_joueurs_temp
-			vers_autre_joueurs_temp = []
-			for i in vers_autre_joueurs:
-				if i not in vers_joueurs:
-					vers_autre_joueurs_temp.append(i)
-			vers_autre_joueurs = vers_autre_joueurs_temp
-			print("{} a les pikominos {} {}".format(liste_joueur[joueur], vers_joueurs, vers_autre_joueurs))
-			pikominos_joueur[joueur] = vers_joueurs
-			tours += 1
+    # Affiche le nom des joueurs et leurs dominos
+    print(players_dominoes, names)
 
-	max_score = 0
-	gagnant = 0
-	for i in range(nombre_joueurs):
-		for x in range(len(pikominos_joueur[i])):
-			if max_score < sum(pikominos_joueur[i][x]):
-				max_score = sum(pikominos_joueur[i][x])
-				gagnant = i
+    # Debut du premier tour
+    turn = 1
+    # Boucle tant que dominos n'est pas vide
 
-	print("Le gangnant est {} avec {} points".format(liste_joueur[gagnant-1], max_score))
-	print("Fin du jeux")
+    while len(main_dominoes) > 15:
+        for play in range(nb_players):
+            print(f"\n\n\tTour {turn}\n\n")
+            # Nombre de des à chaque tour définie à 8
+            dice = 8
+            main_dominoes.sort()  # tri la liste main_dominos par ordre croissant
+            sum_dice = 0  # somme des dés du joueur
+            temp_dominoes = players_dominoes[play]  # dominos du joueur temporaire
+            last_other_dominoes = []  # dernier dominos des autres joueurs que player
+            # si ce n'est pas le premier tour alors on ajoute les derniers dominos de chaque joueur à last_dominos
+            for i in range(nb_players):
+                if i != play:
+                    if len(players_dominoes[i]) != 0:
+                        last_other_dominoes.append(players_dominoes[i][-1])
+
+            temp_dice = player_turn(play, names)  # Fait passer le premier tour au joueur play
+            if temp_dice in [-1, -2]:
+                if temp_dice == -1:
+                    print(f"Vous n'avez pas de 6 dans vos dés")
+                # Pas besoin d'afficher du texte la fonction choice_dice le fait déjà
+                if len(temp_dominoes) != 0:
+                    print("Vous passer votre tour")
+                    pass_your_turn(main_dominoes, temp_dominoes)
+                else:
+                    print("Vous n'avez pas assez de dominos pour passer votre tour")
+                continue
+
+            else:
+                print(f"Vous avez obtenu un score de {temp_dice} avec les dés")
+                if not 21 > temp_dice or temp_dice > 36:
+                    # Si 21 <= temp_dices <= 36
+                    print(f"Dominos sur le plateau : {main_dominoes}"
+                          f"Dominos visibles des autres joueurs : {last_other_dominoes}")
+                    take_dominoes(names, play, main_dominoes, temp_dominoes, last_other_dominoes, temp_dice)
+                    print(f"Dominos sur le plateau : {main_dominoes}\nDominos que tu possede : {temp_dominoes}\n"
+                          f"Dominos visibles des autres joueurs : {last_other_dominoes}")
+                    players_dominoes[play] = temp_dominoes
+            turn += 1
+
+    print("\n\n\n\n\nLe jeux est terminer nous allons voir le gagnant")
+    point_players = []
+    # Calcul la somme de chaque liste de players_dominoes
+    for i in range(nb_players):
+        temp_point_player = 0
+        for x in range(len(players_dominoes[i])):
+            if 24 >= players_dominoes[i][x] >= 21:
+                temp_point_player += 1
+            if 28 >= players_dominoes[i][x] >= 25:
+                temp_point_player += 2
+            if 32 >= players_dominoes[i][x] >= 29:
+                temp_point_player += 3
+            if 36 >= players_dominoes[i][x] >= 33:
+                temp_point_player += 4
+        point_players.append(temp_point_player)
+    # affiche le joueur ayant le plus de points et le nombre de points qu'il a
+    print(f"Le joueur ayant le plus de points est)\n"
+          f"{names[point_players.index(max(point_players))]} avec {max(point_players)} vers !")
+    print("\n\n\tFIN DU JEU")
