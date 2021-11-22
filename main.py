@@ -31,8 +31,8 @@ def autre_joueur(pikominos_joueur:list, pikominos_autre_joueurs:list, need_pikom
 	"""
 	pikominos_joueur.append(need_pikominos) # on ajoute le pikominos au joueur
 	# on supprime le derniere element de la liste pikominos_autre_joueurs
-	pikominos_autre_joueurs.remove(pikominos_autre_joueurs[-1])
-	return pikominos_joueur, pikominos_autre_joueurs # 
+	pikominos_autre_joueurs.pop()
+	return pikominos_joueur, pikominos_autre_joueurs 
 
 def takeClosest(myList:list, myNumber:int) -> int:
 	return min(myList, key=lambda x:abs(x-myNumber))
@@ -76,17 +76,25 @@ def prendre_pikominos(pikominos:list, pikominos_joueur:list, pikominos_autre_jou
 
 		need_pikominos = int(input("Quel pikominos veut tu prendre {} somme des = {} :  ".format(pikominos_eligible, somme_des)))
 		if need_pikominos in pikominos_eligible:
+
 			if number_list == 1: # si le pikominos est sur le plateau
 				pikominos_joueur, pikominos = sur_plateau(pikominos, pikominos_joueur, need_pikominos)
+				print("\t{}, {}, {}".format(pikominos, pikominos_joueur, pikominos_autre_joueurs))
+				return pikominos, pikominos_joueur, pikominos_autre_joueurs
+
 			elif number_list == 2: # si le pikominos n'est pas sur le plateau mais que tu vex prendre celui le plus proche inférieur
 				pikominos_joueur, pikominos_autre_joueurs = autre_joueur(pikominos_joueur, pikominos_autre_joueurs, need_pikominos)
+				print("\t{}, {}, {}".format(pikominos, pikominos_joueur, pikominos_autre_joueurs))
+				return pikominos, pikominos_joueur, pikominos_autre_joueurs
+
 			else: # si le pikominos n'est pas sur le plateau mais que tu vex prendre celui le plus proche inférieur
 				pikominos_joueur, pikominos = prendre_pikominos_proche(pikominos, need_pikominos, pikominos_joueur)
-			print("\t{}, {}, {}".format(pikominos, pikominos_joueur, pikominos_autre_joueurs))
-			return pikominos, pikominos_joueur, pikominos_autre_joueurs
+				print("\t{}, {}, {}".format(pikominos, pikominos_joueur, pikominos_autre_joueurs))
+				return pikominos, pikominos_joueur, pikominos_autre_joueurs
+
 		return prendre_pikominos(pikominos, pikominos_joueur, pikominos_autre_joueurs, somme_des)
 	print("Tu en peux pas prendre de dés car {} n'est pas dans l'interval 21 <= n <= 36".format(somme_des))
-	return pikominos_joueur, pikominos, pikominos_autre_joueurs
+	return pikominos, pikominos_joueur, pikominos_autre_joueurs
 
 def pass_ton_tour(pikominos:list, pikominos_joueur:list):
 	"""
@@ -96,10 +104,11 @@ def pass_ton_tour(pikominos:list, pikominos_joueur:list):
 	if max(pikominos) > int(pikominos_joueur[-1]):
 		print("Le Pickominos {} as été remis sur le plateau".format(pikominos_joueur[-1]))
 		pikominos.append(pikominos_joueur[-1])
-		pikominos_joueur.pop()
+		pikominos_joueur.remove(pikominos_joueur[-1])
 	else: 
 		print("Le Pickominos {} as été remis sur le plateau mais il n'est plus disponible car c'est le plus grand".format(pikominos_joueur[-1]))
-		pikominos_joueur.pop()
+		pikominos_joueur.remove(pikominos_joueur[-1])
+	pikominos.sort()
 	return pikominos, pikominos_joueur
 
 def condition2(temp_des_lancer:list, temp_des_poche:list, need_dominos:str, nombre_des:int) -> list:
@@ -130,8 +139,8 @@ def condition(pikominos:list, pikominos_joueur:list, temp_des_poche:list, temp_d
 	if all(x in temp_des_poche for x in temp_des_lancer):
 		print("Tu passe ton tour")
 		return [0], -2
-	need_dominos = input("Quel dominos veut tu prendre : ")
-	if need_dominos == "n":
+	need_dominos = input("Quel dominos veut tu prendre (N/n pour stop): ")
+	if need_dominos in ["N", "n"]:
 		if 6 in temp_des_poche:
 			return temp_des_poche, -3
 		print("Tu passe ton tour")
@@ -198,15 +207,14 @@ if __name__ == "__main__":
 			if len(pikominos_joueur[joueur]) != 0: # si le joueur a des pikominos
 				for i in range(len(pikominos_joueur[joueur])):
 					vers_joueurs.append(pikominos_joueur[joueur][-1])
-			print(vers_autre_joueurs)
-			print("\n\tTour {}\n\tPikominos sur plateau {}\n\tPikominos autre joueurs {}\n".format(tours, vers, pikominos_joueur))
+			print("\n\tTour {}\n\tPikominos sur plateau {}\n\tPikominos autre joueurs {}\n".format(tours, vers, vers_joueurs))
 			somme_des = tour(liste_joueur[joueur], vers, vers_joueurs)
 			#crée une liste vers_autre_joueurs qui contient tout les derniers caracteres des listes dasn la liste pikominos_joueur sauf celui du joueurs en cours
 			if tours != 1: # si la liste n'est pas vide
 				for i in range(nombre_joueurs): # on parcours la liste des joueurs
 					if i != joueur: # si le joueur n'est pas celui en cours
-						if len(pikominos_joueur[i]) != 0: # si la liste n'est pas vide
-							vers_autre_joueurs.append(pikominos_joueur[i][-1]) # on ajoute le dernier caractere de la liste dans la liste vers_autre_joueurs
+						if len(vers_joueurs) != 0: # si la liste n'est pas vide
+							vers_autre_joueurs.append(vers_joueurs[-1]) # on ajoute le dernier caractere de la liste dans la liste vers_autre_joueurs
 						else: # si la liste est vide
 							vers_autre_joueurs.append(0) # on ajoute 0 dans la liste vers_autre_joueurs
 			else:
@@ -219,11 +227,11 @@ if __name__ == "__main__":
 				if somme_des == -1:
 					print("{} a perdu car il n'a pas de 6".format(liste_joueur[joueur-1]))
 					#pass ton tour
-					vers_joueurs, pikominos_joueur[joueur] = pass_ton_tour(vers, vers_joueurs)
+					vers_joueurs, vers_joueurs = pass_ton_tour(vers, vers_joueurs)
 					continue
 				if somme_des == -2:
 					print("{} a perdu car il a jeter que des des qu'il possede deja".format(liste_joueur[joueur]))
-					vers_joueurs, pikominos_joueur[joueur] = pass_ton_tour(vers, vers_joueurs)
+					vers_joueurs, vers_joueurs = pass_ton_tour(vers, vers_joueurs)
 					continue
 			else:
 				if somme_des == -1:
@@ -246,7 +254,7 @@ if __name__ == "__main__":
 				if i not in vers_joueurs:
 					vers_autre_joueurs_temp.append(i)
 			vers_autre_joueurs = vers_autre_joueurs_temp
-			print("{} a les pikominos {}".format(liste_joueur[joueur], vers_joueurs))
+			print("{} a les pikominos {} {}".format(liste_joueur[joueur], vers_joueurs, vers_autre_joueurs))
 			pikominos_joueur[joueur] = vers_joueurs
 			tours += 1
 
