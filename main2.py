@@ -1,32 +1,26 @@
-
-
 def take_dominoes(number_players, player, main_dominoes, temp_dominoes, last_other_dominoes, sum_dice):
-    """ temp_dice, names, main_dominoes, temp_dominoes
-    crée une liste takeable qui correspond aux dominos qui peuvent etre pris si 21 <= sum_dice <= 36
-    - Si sum_dice strictement égale à un entier dans last_other_dominoes
-    - Si sum_dice strictement égale à un entier dans main_dominoes
-    - Si sum_dice n'est pas strictement égale à un entier dans main_dominoes on ajoute l'entier le plus proche de sum_dice à takeable
+    """ temp_dice, names, main_dominoes, temp_dominoes crée une liste takeable qui correspond aux dominos qui peuvent
+    etre pris si 21 <= sum_dice <= 36 - Si sum_dice strictement égale à un entier dans last_other_dominoes - Si
+    sum_dice strictement égale à un entier dans main_dominoes - Si sum_dice n'est pas strictement égale à un entier
+    dans main_dominoes on ajoute l'entier le plus proche de sum_dice à takeable
     """
-    #le caractere le plus proche de sum_dice dans main_dominoes
+    # le caractere le plus proche de sum_dice dans main_dominoes
     close_value = [i for i in main_dominoes if abs(sum_dice - i) == min(abs(sum_dice - i) for i in main_dominoes)]
-    take = 0
     takeable = []
 
     if sum_dice in last_other_dominoes:
         temp_list = [i for i in last_other_dominoes if i == sum_dice]
-        takeable.extend(int(i) for i in temp_list)
-        take = 1
+        takeable += temp_list
     if sum_dice in main_dominoes:
         temp_list = [i for i in main_dominoes if i == sum_dice]
-        takeable.extend(int(i) for i in temp_list)
-        take = 2
+        takeable += temp_list
     if sum_dice != close_value:
-        takeable.extend(close_value)
-        take = 3
-    #trie la liste takeable dans l'ordre croissant
+        takeable.append(close_value)
+    # trie la liste takeable dans l'ordre croissant
+    if len(takeable[1:]) == 0:
+        return
 
-
-    print(f"{number_players[player]} as comme dominos prennable : {takeable[1:]}")
+    print(f"{number_players[player]} a comme dominos prennable : {takeable[1]}")
     choice = int(input("Quel dominos veut tu prendre : "))
 
     while choice not in takeable:
@@ -48,10 +42,10 @@ def take_dominoes(number_players, player, main_dominoes, temp_dominoes, last_oth
         # supprime choice de main_dominoes
         main_dominoes.remove(choice)
     print(f"Vous avez pris {choice} à vos dominos")
-    return take
+    return
 
 
-def skip_your_turn(main_dominoes:list[int], temp_dominoes:list[int]):
+def skip_your_turn(main_dominoes: list[int], temp_dominoes: list[int]):
     """
     Si le dernier entier de temp_dominos est plus petit que le plus grand de la liste main_dominos,
      on l'ajoute à main_dominos et on le supprime de temp_dominos.
@@ -70,7 +64,7 @@ def rolling_dice(number_dice):
     return [random.randint(1, 6) for _ in range(number_dice)]
 
 
-def pass_your_turn(main_dominoes, temp_dominoes):
+def pass_your_turn(main_dominoes: list[int], temp_dominoes: list[int]):
     """
     Rend le dernier entier de temp_dominoes à main_dominoes
      Si cette entier est plus petit que le plus grand de la liste main_dominoes,
@@ -97,7 +91,6 @@ def choice_dice(number_players, player, temp_dice_roll, temps_dice):
     if choice in ['n', 'N']:
         if 6 in temps_dice:
             return int(sum(temps_dice))
-        print("Il n'y a pas de 6 dans tes dés")
         return -1
     choice = int(choice)
     if choice not in temp_dice_roll:
@@ -138,6 +131,9 @@ def player_turn(player, number_players):
                 temps_dice.append(number)
                 number_dice -= 1
         print(f"Vous avez pris les dés {choice} : {temps_dice} = {sum(temps_dice)}")
+    if 6 not in temps_dice:
+        print("Vous n'avez pas de 6")
+        return -1
     print()
     return int(sum(temps_dice))
 
@@ -169,64 +165,62 @@ if __name__ == "__main__":
     # Debut du premier tour
     turn = 1
     # Boucle tant que dominos n'est pas vide
-    while len(main_dominoes) > 0:
-        # Affiche le tour
-        print("Tour " + str(turn))
 
-        # Nombre de des à chaque tour définie à 8
-        dice = 8
-
-        # Boucle qui fait jouer chaque joueur
+    while len(main_dominoes) > 15:
         for play in range(nb_players):
+            print(f"\n\n\tTour {turn}\n\n")
+            # Nombre de des à chaque tour définie à 8
+            dice = 8
             main_dominoes.sort()  # tri la liste main_dominos par ordre croissant
             sum_dice = 0  # somme des dés du joueur
             temp_dominoes = players_dominoes[play]  # dominos du joueur temporaire
             last_other_dominoes = []  # dernier dominos des autres joueurs que player
             # si ce n'est pas le premier tour alors on ajoute les derniers dominos de chaque joueur à last_dominos
-            if turn > 1:
-                for i in range(nb_players):
-                    if i != play:
+            for i in range(nb_players):
+                if i != play:
+                    if len(players_dominoes[i]) != 0:
                         last_other_dominoes.append(players_dominoes[i][-1])
 
             temp_dice = player_turn(play, names)  # Fait passer le premier tour au joueur play
-            if temp_dice == -1:
-                print(f"Vous n'avez pas de 6 dans vos dés")
+            if temp_dice in [-1, -2]:
+                if temp_dice == -1:
+                    print(f"Vous n'avez pas de 6 dans vos dés")
+                # Pas besoin d'afficher du texte la fonction choice_dice le fait déjà
+                if len(temp_dominoes) != 0:
+                    print("Vous passer votre tour")
+                    pass_your_turn(main_dominoes, temp_dominoes)
+                else:
+                    print("Vous n'avez pas assez de dominos pour passer votre tour")
                 continue
-            if temp_dice == -2:
-                continue
-            if len(temp_dominoes) > 0:
-                pass_your_turn(temp_dice, last_other_dominoes)
-                continue
+
             else:
                 print(f"Vous avez obtenu un score de {temp_dice} avec les dés")
+                if not 21 > temp_dice or temp_dice > 36:
+                    # Si 21 <= temp_dices <= 36
+                    print(f"Dominos sur le plateau : {main_dominoes}"
+                          f"Dominos visibles des autres joueurs : {last_other_dominoes}")
+                    take_dominoes(names, play, main_dominoes, temp_dominoes, last_other_dominoes, temp_dice)
+                    print(f"Dominos sur le plateau : {main_dominoes}\nDominos que tu possede : {temp_dominoes}\n"
+                          f"Dominos visibles des autres joueurs : {last_other_dominoes}")
+                    players_dominoes[play] = temp_dominoes
+            turn += 1
 
-                print(f"Dominos sur le plateau : {main_dominoes}\nDominos visibles des autres joueurs : {last_other_dominoes}")
-                take_dominoes(names, play, main_dominoes, temp_dominoes, last_other_dominoes, temp_dice)
-                print(f"Dominos sur le plateau : {main_dominoes}\nDominos que tu possede : {temp_dominoes}\n"
-                    f"Dominos visibles des autres joueurs : {last_other_dominoes}")
-                players_dominoes[play] = temp_dominoes
-            if len(main_dominoes) == 0:
-                break
     print("\n\n\n\n\nLe jeux est terminer nous allons voir le gagnant")
     point_players = []
+    # Calcul la somme de chaque liste de players_dominoes
     for i in range(nb_players):
         temp_point_player = 0
-        for x in range(players_dominoes[i-1]):
-            if 24 >= x >= 21:
+        for x in range(len(players_dominoes[i])):
+            if 24 >= players_dominoes[i][x] >= 21:
                 temp_point_player += 1
-            if 28 >= x >= 25:
+            if 28 >= players_dominoes[i][x] >= 25:
                 temp_point_player += 2
-            if 32 >= x >= 29:
+            if 32 >= players_dominoes[i][x] >= 29:
                 temp_point_player += 3
-            if 36 >= x >= 33:
+            if 36 >= players_dominoes[i][x] >= 33:
                 temp_point_player += 4
         point_players.append(temp_point_player)
     # affiche le joueur ayant le plus de points et le nombre de points qu'il a
-    print(f"Le joueur ayant le plus de points est {names[point_players.index(max(point_players))]} avec {max(point_players)} points !")
-    # affiche le deuxieme joueur ayant le plus de points et le nombre de points qu'il a
-    print(f"Le joueur ayant le deuxieme plus de points est {names[point_players.index(max(point_players[0:point_players.index(max(point_players))]))]} avec {max(point_players[0:point_players.index(max(point_players))])} points !")
-    if len(names) >= 3:
-        # affiche le troisieme joueur ayant le plus de points et le nombre de points qu'il a
-        print(f"Le joueur ayant le troisieme plus de points est {names[point_players.index(max(point_players[0:point_players.index(max(point_players))]))]} avec {max(point_players[0:point_players.index(max(point_players))])} points !")
+    print(f"Le joueur ayant le plus de points est)\n"
+          f"{names[point_players.index(max(point_players))]} avec {max(point_players)} vers !")
     print("\n\n\tFIN DU JEU")
-
