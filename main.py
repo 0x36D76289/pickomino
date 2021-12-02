@@ -125,16 +125,11 @@ def choice_dice(number_players, player, temp_dice_roll, temps_dice):
         if all(number in temps_dice for number in temp_dice_roll):
             print(f"Tu as jeté que des dés {print_dice(temp_dice_roll)} que tu possèdes deja {print_dice(temps_dice)}, pas de chance")
             return -2
-    choice = input(f"{number_players[player]}, Quel dominos veut tu dés {print_dice(temp_dice_roll)} (N pour stop, 6 pour 'vers'): ")
+    choice = input(f"{number_players[player]}, Quel dés veut tu dés {print_dice(temp_dice_roll)} (6 pour 'vers'): ")
 
-    if choice in ['n', 'N']:
-        if 6 in temps_dice:
-            return int(sum(temps_dice))
-        return -1
     # si choice est égale à vers on ajoute 6 à temp_dice_roll
     if choice in ['6', 'vers', 'VERS']:
-        choice2 = 6
-        return choice2
+        return 6
     choice = int(choice)
     if choice not in temp_dice_roll:
         print("Tu ne peux pas prendre un des que tu n'a pas lancer")
@@ -157,11 +152,15 @@ def player_turn(player, number_players):
     throw_of_dice = 0
     while number_dice > 0:
         throw_of_dice += 1
+        end = input(f"{number_players[player]}, veux tu continuer à lancer les dés ? (O/N)")
+        while end not in ['o', 'O', 'n', 'N']:
+            end = input("Veuillez entrer O ou N : ")
+        if end in ['n', 'N']:
+            if len(temp_dice) == 0:
+                return 0
+            return sum_dice(temps_dice)
         temp_dice_roll = rolling_dice(number_dice)
         choice = choice_dice(number_players, player, temp_dice_roll, temps_dice)
-        temp_dice_sum = sum(temp_dice_roll)
-        if choice == temp_dice_sum:
-            return temp_dice_sum
         if choice == -1:
             return -1
         if choice == -2:
@@ -175,7 +174,7 @@ def player_turn(player, number_players):
         print("Vous n'avez pas de vers")
         return -1
     print()
-    return int(sum(temps_dice))
+    return sum_dice(temps_dice)
 
 
 if __name__ == "__main__":
@@ -200,6 +199,10 @@ if __name__ == "__main__":
     while len(main_dominoes) > 0:
         for play in range(nb_players):
             print(f"\n\n\tTour {turn}\n\n")
+            #affiche les dominos des joueurs et sur le plateau
+            print(f"Les dominos des joueurs : {list_to_point(players_dominoes[play])}\n")
+            print(f"Les dominos sur le plateau : {list_to_point(main_dominoes)}\n")
+            
             dice = 8
             main_dominoes.sort()
             sum_dice = 0
@@ -211,7 +214,9 @@ if __name__ == "__main__":
                         last_other_dominoes.append(players_dominoes[i][-1])
 
             temp_dice = player_turn(play, names)
-            if temp_dice in [-1, -2]:
+            if temp_dice in [0, -1, -2]:
+                if temp_dice == 0:
+                    print("Vous n'avez pris aucun dés")
                 if temp_dice == -1:
                     print(f"Vous n'avez pas de 6 dans vos dés")
                 if len(temp_dominoes) != 0:
@@ -222,8 +227,7 @@ if __name__ == "__main__":
                 continue
 
             else:
-                print(
-                    f"Vous avez obtenu un score de {temp_dice} avec les dés")
+                print(f"Vous avez obtenu un score de {temp_dice} avec les dés")
                 if not 21 > temp_dice or temp_dice > 36:
                     print(f"Dominos sur le plateau : {list_to_point(main_dominoes)}\n"
                           f"Dominos visibles des autres joueurs : {list_to_point(last_other_dominoes)}")
@@ -231,6 +235,8 @@ if __name__ == "__main__":
                     print(f"Dominos sur le plateau : {list_to_point(main_dominoes)}\nDominos que tu possede : {list_to_point(temp_dominoes)}\n"
                           f"Dominos visibles des autres joueurs : {list_to_point(last_other_dominoes)}")
                     players_dominoes[play] = temp_dominoes
+            main_dominoes.sort()
+            
             turn += 1
 
     print("\n\n\n\n\nLe jeux est terminer nous allons voir le gagnant")
