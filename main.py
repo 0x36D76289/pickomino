@@ -20,29 +20,6 @@ def list_to_point(list_dominoes):
     point_dominoes = dict(zip(list_dominoes, point_dominoes))
     return point_dominoes
 
-# def list_to_point_all_player(list_dominoes):
-#     """ list_dominoes: list -> dict
-#     Renvoie la liste des dominos des joueurs en points avec :
-#     21 à 24 = 1,
-#     25 à 28 = 2,
-#     29 à 32 = 3,
-#     33 à 36 = 4
-#     """
-#     point_dominoes = []
-#     for player in list_dominoes:
-#         for domino in player:
-#             if domino in range(21, 25):
-#                 point_dominoes.append(1)
-#             elif domino in range(25, 29):
-#                 point_dominoes.append(2)
-#             elif domino in range(29, 33):
-#                 point_dominoes.append(3)
-#             elif domino in range(33, 37):
-#                 point_dominoes.append(4)
-#     # crée un dictionnaire avec les dominos et les points
-#     point_dominoes_all_player = dict(zip(list_dominoes, point_dominoes))
-#     return point_dominoes_all_player
-
 def sum_dice(dice:list):
     """dice: list -> int
     Affiche et affiche la somme de dice en prenant en compte que les 6 = 5
@@ -81,16 +58,20 @@ def take_dominoes(number_players, player, main_dominoes, temp_dominoes, last_oth
     takeable = []
 
     # si sum_dice est strictement égale à un entier dans last_other_dominoes on l'joute à la liste takeable
+    take = 0
     if sum_dice in last_other_dominoes:
         takeable.append(sum_dice)
+        take = 1
     
     # si sum_dice est strictement égale à un entier dans main_dominoes on l'joute à la liste takeable
-    if sum_dice in main_dominoes:
+    elif sum_dice in main_dominoes:
         takeable.append(sum_dice)
+        take = 2
     
     # si sum_dice n'est pas strictement égale à un entier dans main_dominoes on ajoute l'entier le plus proche de sum_dice à takeable
     else:
         takeable.append(close_value)
+        take = 3
 
     if len(takeable) == 0:
         return
@@ -103,36 +84,34 @@ def take_dominoes(number_players, player, main_dominoes, temp_dominoes, last_oth
         choice = input("Quel dominos veut tu prendre : ")
     choice = int(choice)
     # si chocie est dans main_dominoes on le supprime de main_dominoes et on l'ajoute dans temp_dominoes
-    if choice in main_dominoes:
+    # if choice in main_dominoes:
+    #     main_dominoes.remove(choice)
+    #     temp_dominoes.append(choice)
+
+    # else :
+    #     # si choice est dans last_other_dominoes on l'ajoute à temp_dominoes
+    #     if choice in last_other_dominoes:
+    #         temp_dominoes.append(choice)
+    #         last_other_dominoes.remove(choice)
+    #     else:
+    #         # si choice est égale à close_value on ajoute close_value à temp_dominoes et on enleve close_value de main_dominoes
+    #         if choice == close_value:
+    #             temp_dominoes.append(close_value)
+    #             main_dominoes.remove(close_value)
+    if take == 1:
+        temp_dominoes.append(choice)
+        last_other_dominoes.remove(choice)
+    elif take == 2:
         main_dominoes.remove(choice)
         temp_dominoes.append(choice)
+    else:
+        temp_dominoes.append(close_value)
+        main_dominoes.remove(close_value)
 
-    else :
-        # si choice est dans last_other_dominoes on l'ajoute à temp_dominoes
-        if choice in last_other_dominoes:
-            temp_dominoes.append(choice)
-            last_other_dominoes.remove(choice)
-        else:
-            # si choice est égale à close_value on ajoute close_value à temp_dominoes et on enleve close_value de main_dominoes
-            if choice == close_value:
-                temp_dominoes.append(close_value)
-                main_dominoes.remove(close_value)
 
     print(f"Vous avez ajouter {choice} à vos dominos")
     print("----------------------------------------------------")
     return
-
-
-def skip_your_turn(main_dominoes, temp_dominoes):
-    """
-    Si le dernier entier de temp_dominos est plus petit que le plus grand de la liste main_dominos,
-     on l'ajoute à main_dominos et on le supprime de temp_dominos.
-     si non on le supprime de temp_dominos.
-    """
-    if temp_dominoes[-1] < max(main_dominoes):
-        main_dominoes.append(temp_dominoes[-1])
-    temp_dominoes.pop()
-
 
 def rolling_dice(number_dice) :
     """
@@ -152,6 +131,8 @@ def pass_your_turn(main_dominoes, temp_dominoes):
     if temp_dominoes[-1] < max(main_dominoes):
         main_dominoes.append(temp_dominoes[-1])
     temp_dominoes.pop()
+    main_dominoes.sort()
+    main_dominoes.pop()
     print(f"Les dominos sur le plateau 1: {list_to_point(main_dominoes)}\n"
           f"Vous avez maintenant       1: {temp_dominoes}")
 
