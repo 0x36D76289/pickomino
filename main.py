@@ -117,13 +117,18 @@ def pass_your_turn():
 	"""
 	Rend le dernier entier des dominos du joueur et supprime le plus grand de main_dominoes
 	"""
+	# affiche les dominos du joueur
+	print(f"{list_noms[i]} a : {dict_dominoes(list_dominoes[i])}")
+	# ajoute la derniere valeur de list_dominoes[i] dans main_dominoes
+	main_dominoes.append(list_dominoes[i][-1])
 	# supprime le derier domino de player_dice
-	player_dice.pop()
-	print(f"Tu as maintenant {player_dice} dominos")
+	list_dominoes[i].pop()
+	print(f"Tu as maintenant {dict_dominoes(list_dominoes[i])}")
 	# supprime le domino le plus grand de main_dominoes
+	main_dominoes.sort()
 	main_dominoes.remove(max(main_dominoes))
 	# affiche les dominos qu'il reste
-	print(f"Il reste {main_dominoes} sur le plateau")
+	print(f"Il reste {dict_dominoes(main_dominoes)} sur le plateau")
 
 if __name__ == "__main__":
 	print("Pikomino")
@@ -248,6 +253,3 @@ if __name__ == "__main__":
 		# affiche les dominos du joueur
 		print(f"{list_noms[i]} dominos : {dict_dominoes(list_dominoes[i])}")
 		print(f"{list_noms[i]} : {sum_dice(list_dominoes[i])}")
-	
-
-
