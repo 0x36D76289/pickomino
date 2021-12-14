@@ -236,6 +236,11 @@ if __name__ == "__main__":
 					# le joueur n'as pas une valeur suffisante pour prendre un domino
 					print(f"{list_noms[i]} n'a pas une valeur suffisante pour prendre un domino")
 				# affiche les dominos du joueur, des autres joueurs, et des dominos restants
+				last_dominoes = []
+				for j in range(nb_joueurs):
+					# si j est différent de i
+					if j != i and list_dominoes[j] != []:
+						last_dominoes.append(list_dominoes[j][-1])
 				print("-----------------")
 				print("{} dominos : {}".format(list_noms[i], dict_dominoes(list_dominoes[i])))
 				print("Les dominos des autres joueurs : {}".format(dict_dominoes(last_dominoes)))
