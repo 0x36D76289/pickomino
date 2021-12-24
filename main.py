@@ -19,6 +19,24 @@ def dict_dominoes(dominoes):
 			points.append(4)
 	return dict(zip(dominoes, points))
 
+def print_players(list_noms):
+	"""
+	Créer un dictionnaire qui assosie le nom du joueur avec son numéro (0, 1, 2, etc en foction de leurs ordre d'apparaition dans la liste)
+	"""
+	players = []
+	for i in range(len(list_noms)):
+		players.append({"nom": list_noms[i], "numéro": i+1})
+	return players
+
+def list_dominoes_all_player(dominoes):
+	"""
+	créer un dictionnaire qui affiche Les dominos des autres joueurs avec dict_dominoes()
+	"""
+	list_dominoes = []
+	for i in range(len(dominoes)):
+		list_dominoes.append(dict_dominoes(dominoes[i]))
+	return list_dominoes
+
 def print_dice(dice):
 	"""
 	Ajoute les valeurs de dice si cette valeurs est de 6 alors on ajoute "vers" dans une liste
@@ -130,6 +148,7 @@ def pass_your_turn():
 	# affiche les dominos qu'il reste
 	print(f"Il reste {dict_dominoes(main_dominoes)} sur le plateau")
 
+
 if __name__ == "__main__":
 	print("Pikomino")
 
@@ -149,8 +168,8 @@ if __name__ == "__main__":
 	for i in range(nb_joueurs):
 		list_dominoes.append([])
 	print("Le jeux peux commencer")
-	print("Les joueurs sont : {}".format(list_noms))
-	print("Les dominos sont : {}".format(main_dominoes))
+	print("Les joueurs sont : {}".format(print_players(list_noms)))
+	print("Les dominos sont : {}".format(dict_dominoes(main_dominoes)))
 
 	# commence le jeux jusqua ce que main_dominoes soit vide en comptanat les tours
 	turn = 1
@@ -165,7 +184,7 @@ if __name__ == "__main__":
 
 			# affiche les dominos du joueur, des autres joueurs, et des dominos restants
 			print("{} dominos : {}".format(list_noms[i], dict_dominoes(list_dominoes[i])))
-			print("Les dominos des autres joueurs : {}".format(list_dominoes))
+			print("Les dominos des autres joueurs : {}".format(list_dominoes_all_player(list_dominoes)))
 			print("Les dominos restants : {}".format(dict_dominoes(main_dominoes)))
 			# créer une liste des derniers entier de chaque liste de list_dominoes
 			last_dominoes = []
